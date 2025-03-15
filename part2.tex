@@ -1,0 +1,111 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{verbatim}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\geometry{margin=1in}
+
+\title{Show Us Your Skills: Twitter Data}
+\author{ECE219 - Project 4}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+As a culmination of the four projects in this class, we introduce this final dataset that you will explore and your task is to walk us through an end-to-end ML pipeline to accomplish any particular goal: regression, classification, clustering or anything else. This is a design question and it is going to be about 30\% of your grade in this project.
+
+This is a chance to push yourself and be creative.
+
+Below is a description and some small questions about the provided dataset to get you started and familiarized with the dataset.
+
+\section{About the Data}
+
+Download the training tweet data. The data consists of 6 text files, each one containing tweet data from one hashtag as indicated in the filenames.
+
+Report the following statistics for each hashtag (i.e., each file has):
+\begin{itemize}
+    \item Average number of tweets per hour.
+    \item Average number of followers of users posting the tweets per tweet (to make it simple, we average over the number of tweets; if a user posted twice, we count the user and the user’s followers twice as well).
+    \item Average number of retweets per tweet.
+\end{itemize}
+
+Plot “number of tweets in hour” over time for \#SuperBowl and \#NFL (a bar plot with 1-hour bins). The tweets are stored in separate files for different hashtags and files are named as \texttt{tweet [\#hashtag].txt}.
+
+\textbf{Note:} The tweet file contains one tweet per line and tweets are sorted with respect to their posting time. Each tweet is a JSON string that you can load in Python as a dictionary. For example, if you parse it with:
+\begin{lstlisting}[language=Python]
+json_object = json.loads(json_string)
+\end{lstlisting}
+you can look up the posting time by:
+\begin{lstlisting}[language=Python]
+json_object['citation_date']
+\end{lstlisting}
+
+You may also assess the number of retweets of a tweet through:
+\begin{lstlisting}[language=Python]
+json_object['metrics']['citations']['total']
+\end{lstlisting}
+
+The number of followers of the person tweeting can be retrieved via:
+\begin{lstlisting}[language=Python]
+json_object['author']['followers']
+\end{lstlisting}
+
+The time information in the data file is in the form of UNIX time, which encodes a point in time as a scalar real number representing the number of seconds that have passed since 00:00:00 UTC Thursday, 1 January 1970 (see Wikipedia for details). In Python, you can convert it to a human-readable date by:
+\begin{lstlisting}[language=Python]
+import datetime
+datetime_object = datetime.datetime.fromtimestamp(unix_time)
+\end{lstlisting}
+This conversion yields a \texttt{datetime} object storing the date and time in your local time zone corresponding to that UNIX time.
+
+In later parts of the project, you may need to use the PST time zone to interpret the UNIX timestamps. To specify the time zone you would like to use, refer to the example below:
+\begin{lstlisting}[language=Python]
+import pytz
+pst_tz = pytz.timezone('America/Los_Angeles')
+datetime_object_in_pst_timezone = datetime.datetime.fromtimestamp(unix_time, pst_tz)
+\end{lstlisting}
+For more details about datetime operations and time zones, see:
+\begin{itemize}
+    \item \url{https://medium.com/@eleroy/10-things-you-need-to-know-about-date-and-time-in-python-with-datetime-pytz-dateutil-timedelta-309bfbafb3f7}
+\end{itemize}
+
+\section{Task Instructions}
+
+Follow the steps outlined below:
+\begin{enumerate}
+    \item Describe your task.
+    \item Explore the data and any metadata (you can even incorporate additional datasets if you choose).
+    \item Describe the feature engineering process. Implement it with reason: Why are you extracting features this way --- why not in any other way?
+    \item Generate baselines for your final ML model.
+    \item A thorough evaluation is necessary.
+    \item Be creative in your task design --- use things you have learned in other classes too if you are excited about them!
+\end{enumerate}
+
+\textbf{Note:} We value creativity in this part of the project, and your score is partially based on how unique your task is. Here are a few pitfalls you should avoid (this list is not exhaustive):
+\begin{itemize}
+    \item \textbf{DO NOT} perform simple sentiment analysis on Tweets: running a pre-trained sentiment analysis model on each tweet and correlating that sentiment to the score in the game over time would yield an obvious result.
+    \item \textbf{DO NOT} include trivial baselines: In sentiment analysis, for example, if you try to train a Neural Network or use a pre-trained model, your baselines need to be competitive. Try to include alternate network architectures in addition to simple baselines such as random or naive Bayesian baselines.
+\end{itemize}
+
+Below are a few project directions that you can consider and modify. These are not complete specifications. You are free and encouraged to create your own projects or project parts (which may earn you creativity points). The projects you develop should match or exceed the complexity of the following three suggested options:
+\begin{enumerate}
+    \item \textbf{Time-Series Correlation between Scores and Tweets:} Since this tweet dataset contains tweets posted before, during, and after the SuperBowl, you can derive time-series data that includes the real-time score of the football game as tweets are generated. This score can be used as a dynamic label for your raw tweet dataset. You can then train a model to predict, given a tweet, the team that is winning. Given the score change, can you generate a tweet using an ensemble of sentences from the original data (or using a more sophisticated generative model)?
+    \item \textbf{Character-centric Time-Series Tracking and Prediction:} In the \#gopatriots dataset, there are several thousand tweets mentioning ``Tom Brady'' and his immediate success or failure during the game. He threw 4 touchdowns and 2 interceptions, so fan emotions about Brady throughout the game are fickle. Can we track the average perceived emotion across tweets about each player in the game over time in each fan base? Note that this option would require you to explore ways to find the sentiment associated with each player over time, not of an entire tweet. Can we correlate these emotions with the score and significant events (such as interceptions or fumbles)? Using these features, can you predict the MVP of the game? Who was the most successful receiver? (The MVP was Brady.)
+    \item \textbf{Library of Prediction Tasks Given a Tweet:} Predict the hashtags or how likely it is that a tweet belongs to a specific team fan. Predict the number of retweets, likes, or quotes. Predict the relative time at which a tweet was posted.
+\end{enumerate}
+
+\textbf{Additional Notes:}
+\begin{itemize}
+    \item The dataset is large. Feel free to subsample as needed.
+    \item The dataset is highly imbalanced with respect to fan distribution. Please take that into account during your analysis.
+    \item Some useful and trending software libraries you might consider (but are not required to use) include: Pinecone, Guardrails, Llama, BERT, PySpark/Spark, and PyG.
+    \item Although we provide sufficient data to apply Deep Learning to the tasks, you are not required to do so. In fact, if you apply Deep Learning and fail to demonstrate all the necessary proof points (e.g., convergence, qualitative evaluation), you will lose points.
+\end{itemize}
+
+\end{document}
